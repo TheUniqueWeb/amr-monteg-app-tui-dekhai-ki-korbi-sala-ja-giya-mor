@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EarnVibe Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Monetag SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='11379459' data-sdk='show_11379459'></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        .glass-premium {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 28px;
+        }
+
+        .gradient-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        .nav-active i {
+            color: #4f46e5 !important;
+            transform: translateY(-5px);
+            filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.4));
+        }
+        
+        .nav-active span { color: #4f46e5 !important; font-weight: 800; }
+
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body class="pb-32">
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="px-6 py-4 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-lg z-50 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <img id="u_photo" src="https://via.placeholder.com/100" class="w-11 h-11 rounded-2xl border-2 border-white shadow-md">
+                <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
+            </div>
+            <div>
+                <h2 id="u_name" class="text-sm font-extrabold text-slate-800">User Name</h2>
+                <p id="u_id" class="text-[10px] text-indigo-500 font-bold tracking-widest uppercase">ID: 000000</p>
+            </div>
+        </div>
+        <div class="bg-indigo-600 px-4 py-2 rounded-2xl shadow-lg shadow-indigo-100">
+            <span class="text-xs font-black text-white">৳ <span class="ui-bal">0.00</span></span>
+        </div>
+    </header>
+
+    <!-- Notice -->
+    <div class="px-5 mt-4">
+        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-2 flex items-center gap-3">
+            <div class="bg-indigo-600 text-white text-[9px] font-black px-2 py-1 rounded-lg">NEWS</div>
+            <marquee class="text-xs font-bold text-indigo-700">🚀 আজকের আপডেট: প্রতি রেফারে ৫ টাকা এবং প্রতি এডে ৮০ পয়সা! দ্রুত কাজ করুন।</marquee>
+        </div>
+    </div>
+
+    <main class="p-5">
+        
+        <!-- HOME PAGE -->
+        <section id="page-home" class="page-view space-y-6">
+            <!-- Single Static Banner -->
+            <div class="w-full h-44 rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white">
+                <img src="https://i.ibb.co.com/v46kNxJy/images.jpg" alt="Banner" class="w-full h-full object-cover">
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div id="dashboard" class="glass-premium p-8 text-center relative overflow-hidden">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">My Balance</p>
+                <h1 class="text-5xl font-black text-slate-800 tracking-tighter">৳ <span class="ui-bal">0.00</span></h1>
+                
+                <div class="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-gray-50">
+                    <div class="text-center">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase">Referrals</p>
+                        <p class="text-xl font-black text-indigo-600 ui-ref">0</p>
+                    </div>
+                    <div class="text-center border-l border-gray-50">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase">Ads Viewed</p>
+                        <p class="text-xl font-black text-indigo-600 ui-ads">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Menu -->
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="navTo('ads')" class="glass-premium p-5 flex flex-col items-center gap-3 active:scale-95 transition">
+                    <img src="https://cdn-icons-png.flaticon.com/512/5906/5906103.png" class="w-12 h-12">
+                    <span class="text-xs font-bold uppercase tracking-tighter">Start Earning</span>
+                </button>
+                <button onclick="navTo('withdraw')" class="glass-premium p-5 flex flex-col items-center gap-3 active:scale-95 transition">
+                    <img src="https://cdn-icons-png.flaticon.com/512/10149/10149458.png" class="w-12 h-12">
+                    <span class="text-xs font-bold uppercase tracking-tighter">Withdraw</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ADS PAGE -->
+        <section id="page-ads" class="page-view hidden">
+            <div class="glass-premium p-8 text-center">
+                <div class="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-play text-3xl text-indigo-600"></i>
+                </div>
+                <h2 class="text-2xl font-black mb-2">Watch Ads</h2>
+                <p class="text-xs text-gray-500 mb-8">প্রতিটি অ্যাড দেখলে পাবেন ৳০.৮০। অ্যাডটি শেষ হওয়া পর্যন্ত অপেক্ষা করুন।</p>
+                
+                <button onclick="handleMonetagAd()" class="w-full gradient-btn text-white py-5 rounded-[2rem] font-black tracking-widest active:scale-95 transition">
+                    VIEW MONETAG AD
+                </button>
+            </div>
+        </section>
+
+        <!-- WITHDRAW PAGE -->
+        <section id="page-withdraw" class="page-view hidden space-y-6">
+            <h2 class="text-xl font-extrabold px-2">Withdraw Payout</h2>
+            <div class="grid grid-cols-3 gap-3">
+                <div onclick="setMethod(this, 'bKash')" class="meth-card bg-white p-4 rounded-3xl flex flex-col items-center gap-2 border-2 border-transparent shadow-sm">
+                    <img src="https://i.ibb.co/Vv3S8Gv/bkash.png" class="w-10 h-10 object-contain">
+                    <span class="text-[9px] font-bold">bKash</span>
+                </div>
+                <div onclick="setMethod(this, 'Nagad')" class="meth-card bg-white p-4 rounded-3xl flex flex-col items-center gap-2 border-2 border-transparent shadow-sm">
+                    <img src="https://i.ibb.co/ZhcG6y5/nagad.png" class="w-10 h-10 object-contain">
+                    <span class="text-[9px] font-bold">Nagad</span>
+                </div>
+                <div onclick="setMethod(this, 'Rocket')" class="meth-card bg-white p-4 rounded-3xl flex flex-col items-center gap-2 border-2 border-transparent shadow-sm">
+                    <img src="https://i.ibb.co/p08yS8X/rocket.png" class="w-10 h-10 object-contain">
+                    <span class="text-[9px] font-bold">Rocket</span>
+                </div>
+            </div>
+
+            <div class="glass-premium p-6 space-y-4">
+                <input type="number" id="w_num" placeholder="Wallet Phone Number" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-none ring-2 ring-transparent focus:ring-indigo-500 font-bold">
+                <input type="number" id="w_amt" placeholder="Amount (Min 50)" class="w-full bg-slate-50 p-4 rounded-2xl outline-none border-none ring-2 ring-transparent focus:ring-indigo-500 font-bold">
+                <button onclick="processWithdraw()" class="w-full gradient-btn text-white py-4 rounded-2xl font-black">CONFIRM REQUEST</button>
+            </div>
+        </section>
+
+        <!-- REFER PAGE -->
+        <section id="page-refer" class="page-view hidden text-center space-y-6">
+            <img src="https://cdn-icons-png.flaticon.com/512/6124/6124998.png" class="w-32 mx-auto mt-6">
+            <h2 class="text-3xl font-black">Refer & Earn</h2>
+            <p class="text-gray-500 text-sm px-10">আপনার বন্ধুকে জয়েন করালেই পাচ্ছেন আকর্ষণীয় বোনাস সরাসরি মেইন ব্যালেন্সে!</p>
+            <div class="glass-premium p-6">
+                <p id="ref-link" class="text-xs font-bold text-indigo-600 bg-indigo-50 p-4 rounded-2xl break-all border-2 border-dashed border-indigo-200">t.me/earnvibes00?start=0</p>
+                <button onclick="copyRef()" class="w-full mt-4 gradient-btn text-white py-4 rounded-2xl font-black">COPY MY LINK</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 left-0 right-0 h-24 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex items-center justify-around px-4 z-[100] rounded-t-[2.5rem]">
+        <button onclick="navTo('home')" class="nav-btn nav-active flex flex-col items-center gap-1" id="nav-home">
+            <i class="fa-solid fa-house-chimney text-xl text-slate-400"></i>
+            <span class="text-[9px] font-bold uppercase">Home</span>
+        </button>
+        <button onclick="navTo('ads')" class="nav-btn flex flex-col items-center gap-1" id="nav-ads">
+            <i class="fa-solid fa-play-circle text-xl text-slate-400"></i>
+            <span class="text-[9px] font-bold uppercase">Ads</span>
+        </button>
+
+        <div class="relative -mt-14">
+            <button onclick="navTo('home', true)" class="w-16 h-16 gradient-btn rounded-full border-4 border-white flex items-center justify-center text-white shadow-2xl active:scale-90 transition">
+                <i class="fa-solid fa-th-large text-2xl"></i>
+            </button>
+        </div>
+
+        <button onclick="navTo('refer')" class="nav-btn flex flex-col items-center gap-1" id="nav-refer">
+            <i class="fa-solid fa-user-group text-xl text-slate-400"></i>
+            <span class="text-[9px] font-bold uppercase">Refer</span>
+        </button>
+        <button onclick="window.open('https://t.me/earnvibes00')" class="nav-btn flex flex-col items-center gap-1">
+            <i class="fa-solid fa-circle-info text-xl text-slate-400"></i>
+            <span class="text-[9px] font-bold uppercase">Help</span>
+        </button>
+    </nav>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        const CONFIG = {
+            botToken: "8609113365:AAF1HvUXP1ttCrEDud3XSCyxaV2OhU51SKI",
+            adminId: "7136887795",
+            botUser: "earnvibes00",
+            reward: 0.80
+        };
+
+        let state = JSON.parse(localStorage.getItem('earnv_db')) || { bal: 0, ref: 0, ads: 0 };
+
+        function sync() {
+            localStorage.setItem('earnv_db', JSON.stringify(state));
+            document.querySelectorAll('.ui-bal').forEach(e => e.innerText = state.bal.toFixed(2));
+            document.querySelectorAll('.ui-ref').forEach(e => e.innerText = state.ref);
+            document.querySelectorAll('.ui-ads').forEach(e => e.innerText = state.ads);
+        }
+
+        // Monetag Integration
+        function handleMonetagAd() {
+            tg.HapticFeedback.impactOccurred('medium');
+            if (typeof show_11379459 === 'function') {
+                show_11379459().then(() => {
+                    state.bal += CONFIG.reward;
+                    state.ads += 1;
+                    sync();
+                    tg.showAlert("অভিনন্দন! আপনি ৳" + CONFIG.reward + " পেয়েছেন।");
+                }).catch(() => tg.showAlert("অ্যাড এই মুহূর্তে উপলব্ধ নেই।"));
+            } else {
+                tg.showAlert("অ্যাড লোড হচ্ছে, কিছুক্ষণ পর আবার চেষ্টা করুন।");
+            }
+        }
+
+        function navTo(page, isDash = false) {
+            document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-' + page).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+            if(!isDash) document.getElementById('nav-' + page)?.classList.add('nav-active');
+            if(isDash) window.scrollTo({top: document.getElementById('dashboard').offsetTop - 100, behavior: 'smooth'});
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        let selM = "";
+        function setMethod(el, m) {
+            document.querySelectorAll('.meth-card').forEach(c => c.style.borderColor = "transparent");
+            el.style.borderColor = "#4f46e5";
+            selM = m;
+        }
+
+        function processWithdraw() {
+            const num = document.getElementById('w_num').value;
+            const amt = parseFloat(document.getElementById('w_amt').value);
+            if(!selM || num.length < 11 || amt < 50 || amt > state.bal) return tg.showAlert("সঠিক তথ্য দিন অথবা ব্যালেন্স চেক করুন!");
+
+            const msg = `💰 *NEW WITHDRAW*%0A👤 Name: ${tg.initDataUnsafe.user?.first_name}%0A🆔 ID: ${tg.initDataUnsafe.user?.id}%0A🏦 Method: ${selM}%0A📞 Number: ${num}%0A💵 Amount: ${amt} BDT`;
+
+            fetch(`https://api.telegram.org/bot${CONFIG.botToken}/sendMessage?chat_id=${CONFIG.adminId}&text=${msg}&parse_mode=Markdown`)
+            .then(() => {
+                state.bal -= amt;
+                sync();
+                tg.showAlert("উইথড্র রিকোয়েস্ট সফল হয়েছে!");
+                navTo('home');
+            });
+        }
+
+        window.onload = () => {
+            setTimeout(() => document.getElementById('loader').style.display = 'none', 800);
+            if(tg.initDataUnsafe.user) {
+                const u = tg.initDataUnsafe.user;
+                document.getElementById('u_name').innerText = u.first_name;
+                document.getElementById('u_id').innerText = "ID: " + u.id;
+                document.getElementById('ref-link').innerText = `https://t.me/${CONFIG.botUser}?start=${u.id}`;
+                if(u.photo_url) document.getElementById('u_photo').src = u.photo_url;
+            }
+            sync();
+        };
+
+        function copyRef() {
+            navigator.clipboard.writeText(document.getElementById('ref-link').innerText);
+            tg.showAlert("রেফার লিঙ্ক কপি হয়েছে!");
+        }
+    </script>
+</body>
+</html>
