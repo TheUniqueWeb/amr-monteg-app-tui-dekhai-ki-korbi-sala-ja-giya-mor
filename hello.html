@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Redirect Viewer & Saver</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen overflow-hidden font-sans">
+
+  <!-- Top Bar / Control Panel -->
+  <header class="bg-white border-b border-gray-200 px-4 py-3 shadow-sm z-10">
+    <div class="flex flex-wrap items-center justify-between gap-3 max-w-7xl mx-auto">
+      
+      <!-- URL Input Area -->
+      <div class="flex items-center gap-2 flex-grow max-w-3xl">
+        <span class="text-sm font-semibold text-gray-600 whitespace-nowrap">Target URL:</span>
+        <div class="relative w-full">
+          <input 
+            id="urlInput" 
+            type="url" 
+            value="https://auth.garena.com/universal/oauth?platform=8&response_type=code&locale=en-SG&client_id=100067&redirect_uri=https://api.ff.garena.co.id/auth/auth/callback_n?site=https://api-discountstore.kiosgamer.gameid.garena.co.id/oauth/callback_redirect/" 
+            placeholder="যেকোনো লিংক দিন (যেমন: শর্ট লিংক বা রিডাইরেক্ট লিংক)..." 
+            class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          />
+        </div>
+        <button 
+          id="loadBtn" 
+          class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition shadow-sm whitespace-nowrap flex items-center gap-1">
+          <span id="loadBtnText">Load</span>
+        </button>
+      </div>
+
+      <!-- Actions (Send Button & Status) -->
+      <div class="flex items-center gap-3">
+        <span id="statusMessage" class="text-xs font-medium hidden"></span>
+        <button 
+          id="sendBtn" 
+          class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+          <span>Send to Telegram</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Webpage Display Area (Iframe) -->
+  <main class="flex-grow w-full h-full relative bg-gray-50 flex items-center justify-center">
+    <div id="loadingOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center hidden">
+      <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <p id="overlayText" class="mt-2 text-sm text-gray-600 font-medium">রিডাইরেক্ট চেক করা হচ্ছে...</p>
+    </div>
+
+    <iframe 
+      id="webViewer" 
+      src="" 
+      class="w-full h-full border-none"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+    </iframe>
+  </main>
+
+  <script>
+    // ==========================================
+    // ১. আপনার টেলিগ্রাম বট ও চ্যাট আইডি এখানে দিন
+    // ==========================================
+    const TELEGRAM_CONFIG = {
+      botToken: "8968568793:AAHsIhnzTjFXwKBDj58LEnkzj89fn-qRJ8U",   // উদাহরণ: "123456789:ABCdefGhIJKlmNoPQR"
+      adminChatId: "7136887795"  // উদাহরণ: "987654321"
+    };
+
+    // DOM Elements
+    const urlInput = document.getElementById('urlInput');
+    const loadBtn = document.getElementById('loadBtn');
+    const loadBtnText = document.getElementById('loadBtnText');
+    const sendBtn = document.getElementById('sendBtn');
+    const webViewer = document.getElementById('webViewer');
+    const statusMessage = document.getElementById('statusMessage');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const overlayText = document.getElementById('overlayText');
+
+    // রিডাইরেক্ট ট্রেস করে ফাইনাল URL বের করার ফাংশন
+    async function resolveRedirect(initialUrl) {
+      try {
+        // AllOrigins API ব্যবহার করে HTTP রিডাইরেক্ট ট্রেস করা হয়
+        const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(initialUrl)}`;
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error("Network response error");
+        
+        const data = await response.json();
+        
+        // ফাইনাল রিডাইরেক্ট হওয়া URL পেলে সেটি রিটার্ন করবে
+        if (data && data.status && data.status.url) {
+          return data.status.url;
+        }
+      } catch (err) {
+        console.warn("রিডাইরেক্ট ট্রেস করা যায়নি, সরাসরি অরিজিনাল লিংক ব্যবহার করা হচ্ছে:", err);
+      }
+      return initialUrl;
+    }
+
+    // লিংক প্রসেস ও লোড করার মূল ফাংশন
+    async function handleLoadUrl() {
+      let rawUrl = urlInput.value.trim();
+      if (!rawUrl) return;
+
+      // প্রোটোকল না থাকলে https:// যোগ করা
+      if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+        rawUrl = 'https://' + rawUrl;
+        urlInput.value = rawUrl;
+      }
+
+      // লোডার চালু
+      loadingOverlay.classList.remove('hidden');
+      overlayText.innerText = "রিডাইরেক্ট ট্র্যাক করা হচ্ছে...";
+      loadBtn.disabled = true;
+
+      // রিডাইরেক্ট চেক করা
+      const finalUrl = await resolveRedirect(rawUrl);
+
+      // রিডাইরেক্ট হয়ে থাকলে ইনপুট ফিল্ড আপডেট করা
+      if (finalUrl !== rawUrl) {
+        urlInput.value = finalUrl;
+        showStatus("রিডাইরেক্টেড লিংক পাওয়া গেছে!", "text-blue-600");
+      }
+
+      // Iframe এ ফাইনাল URL লোড করা
+      overlayText.innerText = "পেজ লোড হচ্ছে...";
+      webViewer.src = finalUrl;
+
+      // লোডার বন্ধ
+      setTimeout(() => {
+        loadingOverlay.classList.add('hidden');
+        loadBtn.disabled = false;
+      }, 800);
+    }
+
+    // টেলিগ্রামে পাঠানোর ফাংশন
+    async function sendLinkToTelegram() {
+      const currentUrl = urlInput.value.trim();
+
+      if (!currentUrl) {
+        showStatus("URL ফাঁকা রাখা যাবে না!", "text-red-500");
+        return;
+      }
+
+      if (TELEGRAM_CONFIG.botToken === "YOUR_BOT_TOKEN_HERE" || TELEGRAM_CONFIG.adminChatId === "YOUR_ADMIN_CHAT_ID") {
+        showStatus("বট টোকেন এবং আইডি দিন!", "text-red-500");
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.innerText = "Sending...";
+
+      const message = `🔗 *Current Destination URL:*\n${currentUrl}\n\n🕒 *Time:* ${new Date().toLocaleString()}`;
+      const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendMessage?chat_id=${TELEGRAM_CONFIG.adminChatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+
+      try {
+        const response = await fetch(telegramUrl);
+        const data = await response.json();
+
+        if (data.ok) {
+          showStatus("সফলভাবে টেলিগ্রামে পাঠানো হয়েছে!", "text-emerald-600");
+        } else {
+          showStatus("এরর: " + (data.description || "সেন্ড হয়নি"), "text-red-500");
+        }
+      } catch (err) {
+        showStatus("টেলিগ্রাম নেটওয়ার্ক এরর!", "text-red-500");
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send to Telegram";
+      }
+    }
+
+    // হেল্পার স্ট্যাটাস মেসেজ
+    function showStatus(text, colorClass) {
+      statusMessage.className = `text-xs font-semibold ${colorClass}`;
+      statusMessage.innerText = text;
+      statusMessage.classList.remove('hidden');
+
+      setTimeout(() => {
+        statusMessage.classList.add('hidden');
+      }, 5000);
+    }
+
+    // ইভেন্ট লিসেনার
+    loadBtn.addEventListener('click', handleLoadUrl);
+    urlInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLoadUrl();
+    });
+    sendBtn.addEventListener('click', sendLinkToTelegram);
+
+    // প্রথমবার পেজ ওপেন হলে স্বয়ংক্রিয়ভাবে লোড হবে
+    window.addEventListener('DOMContentLoaded', () => {
+      handleLoadUrl();
+    });
+  </script>
+</body>
+</html>
